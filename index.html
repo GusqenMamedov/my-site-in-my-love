@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Наша история любви</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    overflow: hidden;
+    position: relative;
+    padding: 10px;
+  }
+
+  /* Звёзды на фоне */
+  .stars {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle 3s infinite ease-in-out;
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.2; }
+    50% { opacity: 1; }
+  }
+
+  /* Контейнер книги */
+  .book-container {
+    position: relative;
+    z-index: 2;
+    perspective: 2000px;
+    width: 100%;
+    max-width: 720px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Закрытая книга */
+  .closed-book {
+    width: min(85vw, 340px);
+    height: min(120vw, 480px);
+    background: linear-gradient(145deg, #8b1538 0%, #5c0a26 50%, #7a1230 100%);
+    border-radius: 8px 16px 16px 8px;
+    box-shadow:
+      -8px 8px 20px rgba(0,0,0,0.6),
+      inset -3px 0 8px rgba(0,0,0,0.4),
+      inset 3px 0 6px rgba(255,255,255,0.1);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.4s ease, box-shadow 0.4s ease;
+    transform-style: preserve-3d;
+    border-left: 12px solid #4a0a1e;
+  }
+
+  .closed-book:hover, .closed-book:active {
+    transform: scale(1.03) rotateY(-5deg);
+    box-shadow: -12px 12px 30px rgba(0,0,0,0.7);
+  }
+
+  .closed-book::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+  }
+
+  .book-ornament {
+    position: absolute;
+    inset: 16px;
+    border: 2px solid rgba(212, 175, 55, 0.5);
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  .book-title-closed {
+    color: #d4af37;
+    text-align: center;
+    padding: 0 30px;
+  }
+  .book-title-closed .heart {
+    font-size: clamp(2.5rem, 10vw, 3.5rem);
+    display: block;
+    margin-bottom: 16px;
+    animation: beat 1.4s infinite ease-in-out;
+    filter: drop-shadow(0 0 10px rgba(212,175,55,0.5));
+  }
+  @keyframes beat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.15); }
+    50% { transform: scale(1); }
+  }
+  .book-title-closed h1 {
+    font-size: clamp(1.2rem, 5vw, 1.6rem);
+    font-weight: normal;
+    letter-spacing: 2px;
+    line-height: 1.5;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+  }
+  .book-title-closed .subtitle {
+    font-size: clamp(0.75rem, 3vw, 0.9rem);
+    color: #c9a86a;
+    margin-top: 18px;
+    letter-spacing: 3px;
+    font-style: italic;
+    animation: pulseText 2s infinite ease-in-out;
+  }
+  @keyframes pulseText {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  .open-hint {
+    position: absolute;
+    bottom: 24px;
+    font-size: 0.7rem;
+    color: #d4af37;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  /* Открытая книга */
+  .open-book {
+    display: none;
+    width: 100%;
+    position: relative;
+    perspective: 2500px;
+  }
+
+  .book-cover {
+    background: linear-gradient(145deg, #8b1538 0%, #5c0a26 100%);
+    padding: 12px 12px 12px 18px;
+    border-radius: 8px 16px 16px 8px;
+    box-shadow:
+      0 15px 40px rgba(0,0,0,0.7),
+      inset 0 0 30px rgba(0,0,0,0.3);
+  }
+
+  .book-pages {
+    background: linear-gradient(145deg, #fdf6e3 0%, #f5ecd2 100%);
+    border-radius: 4px 10px 10px 4px;
+    min-height: 62vh;
+    max-height: 80vh;
+    padding: 34px 26px 30px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 40px rgba(139,105,20,0.08);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .book-pages::-webkit-scrollbar {
+    width: 5px;
+  }
+  .book-pages::-webkit-scrollbar-thumb {
+    background: rgba(139,105,20,0.3);
+    border-radius: 3px;
+  }
+
+  .page-number-top {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 0.7rem;
+    color: #b09a6a;
+    letter-spacing: 1px;
+    font-style: italic;
+  }
+
+  .page-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    animation: pageIn 0.5s ease;
+  }
+
+  @keyframes pageIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes pageInLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .page-content.left {
+    animation: pageInLeft 0.5s ease;
+  }
+
+  /* ====== ОФОРМЛЕНИЕ ГЛАВЫ ====== */
+  .chapter-header {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+
+  .chapter-label {
+    font-size: clamp(0.65rem, 2.6vw, 0.78rem);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: #b08d4a;
+    margin-bottom: 10px;
+    font-family: 'Georgia', serif;
+  }
+
+  .chapter-title {
+    font-size: clamp(1.15rem, 4.6vw, 1.5rem);
+    color: #8b1538;
+    font-weight: normal;
+    line-height: 1.35;
+    letter-spacing: 0.5px;
+    font-style: italic;
+  }
+
+  .chapter-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 14px auto 0;
+    max-width: 220px;
+  }
+  .chapter-divider::before,
+  .chapter-divider::after {
+    content: '';
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(to right, transparent, #c9a86a, transparent);
+  }
+  .chapter-divider .mark {
+    color: #c0392b;
+    font-size: 0.85rem;
+    opacity: 0.8;
+  }
+
+  .epigraph {
+    font-size: clamp(0.8rem, 3.2vw, 0.92rem);
+    color: #8a7455;
+    font-style: italic;
+    text-align: center;
+    line-height: 1.6;
+    padding: 0 8px;
+    margin-bottom: 24px;
+  }
+  .epigraph .epigraph-author {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.75em;
+    letter-spacing: 1px;
+    color: #a89270;
+  }
+
+  .chapter-body p {
+    font-size: clamp(0.88rem, 3.5vw, 1rem);
+    color: #3f372b;
+    line-height: 1.85;
+    text-align: justify;
+    text-indent: 1.6em;
+    margin-bottom: 14px;
+    hyphens: auto;
+  }
+
+  .chapter-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Буквица */
+  .chapter-body p.first-paragraph {
+    text-indent: 0;
+  }
+  .chapter-body p.first-paragraph::first-letter {
+    float: left;
+    font-size: 3.4em;
+    line-height: 0.8;
+    padding: 4px 10px 0 0;
+    color: #8b1538;
+    font-weight: bold;
+    font-style: normal;
+  }
+
+  .chapter-end {
+    text-align: center;
+    margin-top: 22px;
+    color: #c0392b;
+    font-size: 0.9rem;
+    letter-spacing: 6px;
+    opacity: 0.7;
+  }
+
+  /* Навигация */
+  .nav-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 16px;
+    gap: 10px;
+    padding: 0 4px;
+  }
+
+  .nav-btn {
+    background: linear-gradient(145deg, #8b1538, #5c0a26);
+    color: #d4af37;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    flex-shrink: 0;
+    min-width: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    background: linear-gradient(145deg, #a01a44, #6d0d2d);
+  }
+
+  .nav-btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .progress-info {
+    color: #d4af37;
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-align: center;
+    flex: 1;
+    white-space: nowrap;
+  }
+
+  /* Прогресс-бар */
+  .progress-bar-wrap {
+    width: 100%;
+    height: 3px;
+    background: rgba(212,175,55,0.2);
+    border-radius: 2px;
+    margin-top: 14px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(to right, #d4af37, #f0d98c);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    box-shadow: 0 0 8px rgba(212,175,55,0.6);
+  }
+
+  .close-btn {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #8b1538, #5c0a26);
+    color: #d4af37;
+    border: 2px solid #d4af37;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    transition: transform 0.3s ease;
+  }
+  .close-btn:hover {
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  /* Лепестки */
+  .petal {
+    position: fixed;
+    top: -20px;
+    color: #e8a0b0;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 1;
+    animation: fall linear infinite;
+    opacity: 0.7;
+  }
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 0.8; }
+    100% { transform: translateY(105vh) rotate(360deg); opacity: 0.1; }
+  }
+
+  @media (max-width: 400px) {
+    .book-pages {
+      padding: 28px 16px 24px;
+      min-height: 58vh;
+    }
+    .nav-btn {
+      padding: 11px 14px;
+      font-size: 0.8rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .book-pages {
+      padding: 46px 56px 40px;
+      min-height: 440px;
+    }
+  }
+
+  /* Анимации открытия/закрытия */
+  .fade-out {
+    animation: fadeOutBook 0.6s ease forwards;
+  }
+  @keyframes fadeOutBook {
+    to { opacity: 0; transform: scale(0.85) rotateY(-25deg); }
+  }
+  .fade-in {
+    animation: fadeInBook 0.7s ease forwards;
+  }
+  @keyframes fadeInBook {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+<div id="petalsLayer"></div>
+
+<div class="book-container">
+  <!-- Закрытая книга -->
+  <div class="closed-book" id="closedBook">
+    <div class="book-ornament"></div>
+    <div class="book-title-closed">
+      <span class="heart">❤</span>
+      <h1>Наша история</h1>
+      <p class="subtitle">роман в 35 главах</p>
+    </div>
+    <div class="open-hint">✦ нажмите, чтобы открыть ✦</div>
+  </div>
+
+  <!-- Открытая книга -->
+  <div class="open-book" id="openBook">
+    <button class="close-btn" id="closeBtn" aria-label="Закрыть книгу">✕</button>
+    <div class="book-cover">
+      <div class="book-pages">
+        <div class="page-number-top" id="pageNumTop">Глава 1</div>
+        <div class="page-content" id="pageContent">
+          <div class="chapter-header">
+            <div class="chapter-label" id="chapterLabel">Глава первая</div>
+            <h2 class="chapter-title" id="chapterTitle"></h2>
+            <div class="chapter-divider"><span class="mark">❦</span></div>
+          </div>
+          <div class="epigraph" id="epigraph"></div>
+          <div class="chapter-body" id="chapterBody"></div>
+          <div class="chapter-end">❦ ❦ ❦</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <button class="nav-btn" id="prevBtn" aria-label="Предыдущая глава">‹ Назад</button>
+      <div class="progress-info" id="progressInfo">1 / 35</div>
+      <button class="nav-btn" id="nextBtn" aria-label="Следующая глава">Вперёд ›</button>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== Звёзды ====== */
+(function createStars() {
+  const starsContainer = document.getElementById('stars');
+  const count = 80;
+  let html = '';
+  for (let i = 0; i < count; i++) {
+    const size = Math.random() * 2.5 + 0.5;
+    const x = Math.random() * 100;
+    const y = Math.random() * 100;
+    const delay = Math.random() * 3;
+    const duration = Math.random() * 2 + 2;
+    html += `<div class="star" style="
+      width:${size}px;height:${size}px;
+      left:${x}%;top:${y}%;
+      animation-delay:${delay}s;
+      animation-duration:${duration}s;
+    "></div>`;
+  }
+  starsContainer.innerHTML = html;
+})();
+
+/* ====== Лепестки ====== */
+(function createPetals() {
+  const layer = document.getElementById('petalsLayer');
+  const symbols = ['🌸', '❤', '🌹', '✿'];
+  const count = 14;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'petal';
+    el.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.animationDuration = (Math.random() * 8 + 8) + 's';
+    el.style.animationDelay = (Math.random() * 10) + 's';
+    el.style.fontSize = (Math.random() * 12 + 10) + 'px';
+    layer.appendChild(el);
+  }
+})();
+
+/* ====== Названия глав прописью ====== */
+const ordinals = [
+  "первая", "вторая", "третья", "четвёртая", "пятая", "шестая", "седьмая",
+  "восьмая", "девятая", "десятая", "одиннадцатая", "двенадцатая", "тринадцатая",
+  "четырнадцатая", "пятнадцатая", "шестнадцатая", "семнадцатая", "восемнадцатая",
+  "девятнадцатая", "двадцатая", "двадцать первая", "двадцать вторая",
+  "двадцать третья", "двадцать четвёртая", "двадцать пятая", "двадцать шестая",
+  "двадцать седьмая", "двадцать восьмая", "двадцать девятая", "тридцатая",
+  "тридцать первая", "тридцать вторая", "тридцать третья", "тридцать четвёртая",
+  "тридцать пятая"
+];
+
+/* ====== Данные 35 глав ====== */
+const chapters = [
+  {
+    title: "Тот самый день",
+    epigraph: "«Всё началось с одного взгляда — и стало бесконечностью.»",
+    paragraphs: [
+      "С того самого мгновения, как я тебя увидел, мир перестал быть прежним. Я шёл по улице, погружённый в свои мысли, и вдруг время будто замедлилось — ты появилась в моём поле зрения, и всё вокруг потеряло значение.",
+      "Ты стала моим самым красивым «случайным» совпадением. В тот день я ещё не знал, что судьба подарила мне не просто встречу, а целую жизнь. Но что-то внутри уже тогда подсказывало: эта встреча изменит всё.",
+      "Я помню каждую деталь: свет, падавший на твои волосы, лёгкую улыбку, мелькнувшую на губах, и то, как вдруг стало трудно дышать. Так начинаются все великие истории — с обычного дня, который потом становится самым важным."
+    ]
+  },
+  {
+    title: "Первый взгляд",
+    epigraph: "«В твоих глазах я нашёл вселенную, в которой хочу остаться навсегда.»",
+    paragraphs: [
+      "В твоих глазах я нашёл целую вселенную. Там были звёзды, тихие рассветы и обещание чего-то большего, чем просто знакомство. С тех пор каждое утро начинается с мысли о тебе.",
+      "Я ловил себя на том, что ищу тебя в толпе, что мои глаза сами находят тебя, где бы мы ни были. Это было похоже на магнит — тихий, но неотвратимый.",
+      "Первый взгляд — это как первая страница книги, которую невозможно отложить. Ты прочитал меня тогда одним лишь взглядом, и я позволил тебе это сделать. С того момента я знал: назад дороги нет, да я и не хотел её искать."
+    ]
+  },
+  {
+    title: "Твоя улыбка",
+    epigraph: "«Когда ты улыбаешься, даже пасмурные дни становятся солнечными.»",
+    paragraphs: [
+      "Когда ты улыбаешься, даже самые пасмурные дни становятся солнечными. Я заметил это давно: стоит тебе улыбнуться — и мир вокруг словно настраивается на другую, светлую волну.",
+      "Твоя улыбка — это моё личное солнце. Оно не зависит от погоды за окном и от того, что происходит вокруг. Оно просто есть — и этого достаточно, чтобы я чувствовал себя счастливым.",
+      "Иногда я ловлю себя на мысли, что готов на всё, лишь бы увидеть её снова. И в этом нет ничего странного — ведь улыбка любимого человека стоит дороже любых сокровищ мира."
+    ]
+  },
+  {
+    title: "Мелодия смеха",
+    epigraph: "«Твой смех — моя любимая песня, которую я готов слушать вечно.»",
+    paragraphs: [
+      "Твой смех — моя любимая мелодия. Я готов слушать её бесконечно, забывая обо всём на свете. В нём есть что-то такое лёгкое и чистое, что делает сердце теплее.",
+      "Я научился различать оттенки твоего смеха: тихий, смущённый, звонкий, заразительный, тот самый, от которого невозможно не улыбнуться в ответ. Каждый из них — маленькое сокровище в моей коллекции воспоминаний.",
+      "Бывают дни, когда мне грустно, и тогда я вспоминаю, как ты смеёшься. Это работает лучше любого лекарства. Ты — моя личная мелодия счастья, которая всегда звучит где-то внутри."
+    ]
+  },
+  {
+    title: "Твои руки",
+    epigraph: "«В твоих ладонях — моё спокойствие и весь мой мир.»",
+    paragraphs: [
+      "Держать тебя за руку — значит чувствовать, что весь мир на своём месте. В твоих ладонях — моё спокойствие. Я не знаю, как это объяснить, но когда наши пальцы переплетаются, всё становится правильным.",
+      "Твои руки умеют говорить без слов. Они утешают, когда мне плохо, радуются вместе со мной, крепче сжимают мою ладонь в трудную минуту. В них — целая история нашей любви.",
+      "Иногда я просто смотрю на твои руки и думаю о том, сколько всего им ещё предстоит сделать. Сколько дорог пройти, сколько дней обнять, сколько мгновений согреть. И я счастлив, что одна из этих рук — моя."
+    ]
+  },
+  {
+    title: "Тишина вдвоём",
+    epigraph: "«Иногда молчание говорит больше любых слов — если рядом нужный человек.»",
+    paragraphs: [
+      "С тобой можно молчать, и это молчание говорит больше любых слов. Оно наполнено теплом и нежностью, пониманием и доверием. Не всякая тишина — пустая; наша — особенная.",
+      "Мы можем сидеть рядом, каждый со своими мыслями, и при этом чувствовать друг друга. Это редкий дар — быть рядом и не нуждаться в словах, чтобы знать: всё хорошо.",
+      "В такие минуты я понимаю: настоящая близость — это не про громкие признания, а про способность быть рядом в тишине. И я благодарен за каждый такой момент, подаренный нам."
+    ]
+  },
+  {
+    title: "Наше утро",
+    epigraph: "«Просыпаться рядом с тобой — лучшее, что может случиться.»",
+    paragraphs: [
+      "Просыпаться рядом с тобой — лучшее, что может случиться. Твой сонный взгляд, растрёпанные волосы, тихое «доброе утро» — в этом столько нежности, что сердце замирает.",
+      "Утро — особенное время. В нём ещё нет суеты дня, только вы двое и мягкий свет за окном. Я люблю эти первые минуты, когда мир ещё не проснулся, а мы уже вместе.",
+      "Иногда я просыпаюсь раньше и просто смотрю на тебя. В такие мгновения я думаю: вот оно, счастье. Не где-то в будущем, не в мечтах, а прямо здесь, рядом, в этом тихом утре."
+    ]
+  },
+  {
+    title: "Разговоры обо всём",
+    epigraph: "«С тобой каждая мелочь становится интересной историей.»",
+    paragraphs: [
+      "Мы можем говорить обо всём и ни о чём. С тобой каждая мелочь становится интересной историей. Погода за окном, увиденная птица, случайная мысль — всё превращается в повод для разговора.",
+      "Я люблю наши долгие беседы. Мы перескакиваем с темы на тему, смеёмся, спорим, соглашаемся, открываем друг друга заново. В этих разговорах мы становимся ближе.",
+      "Бывает, что мы говорим до глубокой ночи, забывая о времени. И утром, немного уставшие, но счастливые, понимаем: такие ночи — тоже часть нашей истории, и они бесценны."
+    ]
+  },
+  {
+    title: "Наши мечты",
+    epigraph: "«В каждой моей мечте рядом со мной — ты.»",
+    paragraphs: [
+      "Я мечтаю о нашем будущем, и в каждой мечте рядом со мной — ты. Ты — главный герой всех моих планов, самое важное в каждом «мы», которое я представляю.",
+      "Мы часто говорим о том, что будет завтра, через год, через десять лет. И в каждом из этих разговоров есть общая нить — мы хотим быть вместе, куда бы ни привела нас дорога.",
+      "Мечтать вместе — это особое искусство. Это значит строить общий мир, в котором есть место для двоих. И я счастлив, что мы умеем это делать."
+    ]
+  },
+  {
+    title: "Твоя поддержка",
+    epigraph: "«Твоё «я с тобой» сильнее любых советов и лекарств.»",
+    paragraphs: [
+      "Ты всегда рядом, когда мне трудно. Твоё «я с тобой» — сильнее любых лекарств и самых лучших советов. Иногда достаточно просто услышать эти слова, чтобы стало легче.",
+      "Ты умеешь поддержать так, как никто другой. Не навязчиво, не поучая, а тихо и искренне. В твоей поддержке нет пустых фраз — только настоящее участие.",
+      "Я знаю: что бы ни случилось, я могу на тебя рассчитывать. И это знание даёт мне силы двигаться вперёд, даже когда кажется, что всё против меня."
+    ]
+  },
+  {
+    title: "Нежность",
+    epigraph: "«Твоя нежность — тихий свет, что согревает изнутри.»",
+    paragraphs: [
+      "Твоя нежность — это тихий свет, который согревает меня изнутри. Я берегу его как самое дорогое сокровище. В ней есть то, чего так не хватает миру — настоящая теплота.",
+      "Нежность — это не громкие слова и не пышные жесты. Это забота в мелочах, внимательный взгляд, прикосновение вовремя. Ты умеешь это так естественно, что я иногда забываю дышать.",
+      "Я заметил: после времени, проведённого с тобой, мир кажется добрее. Это твоя нежность действует на меня, как целебный бальзам. И я благодарен за каждый её оттенок."
+    ]
+  },
+  {
+    title: "Забота",
+    epigraph: "«Твоя забота — как тёплый плед в холодный вечер.»",
+    paragraphs: [
+      "Ты замечаешь то, что я сам не замечаю. Твоя забота — как тёплый плед в холодный вечер: она появляется незаметно, но сразу становится уютно и спокойно.",
+      "Ты помнишь мелочи, которые я забываю: что мне нужно отдохнуть, что я мало ем, что мне грустно, даже когда я это скрываю. Эта внимательность — особый дар.",
+      "Забота — это язык любви, на котором ты говоришь со мной каждый день. И я учусь понимать его всё лучше, чтобы отвечать тебе тем же. Взаимная забота — вот что делает пару настоящей."
+    ]
+  },
+  {
+    title: "Твой взгляд",
+    epigraph: "«Иногда ты просто смотришь на меня — и я самый счастливый человек.»",
+    paragraphs: [
+      "Иногда ты просто смотришь на меня — и я чувствую себя самым счастливым человеком на земле. В твоём взгляде столько всего: понимание, тепло, обещание, дом.",
+      "Я ловлю эти взгляды в самых обычных ситуациях: за ужином, на прогулке, в тишине. И каждый раз это как маленький подарок — ты здесь, ты со мной, ты моя.",
+      "Взгляд любимого человека — это целая вселенная. И я готов бесконечно тонуть в твоей, находить там что-то новое и возвращаться снова и снова."
+    ]
+  },
+  {
+    title: "Объятия",
+    epigraph: "«В твоих объятиях время останавливается.»",
+    paragraphs: [
+      "В твоих объятиях время останавливается. Это место, где можно просто быть собой — настоящим и уязвимым. Здесь не нужно притворяться и играть роли.",
+      "Объятия — это разговор без слов. В них и «я скучал», и «всё будет хорошо», и «я рядом». Ты умеешь обнять так, что все тревоги отступают.",
+      "Есть особое удовольствие в том, чтобы просто обнимать тебя и чувствовать, как дышит любимый человек. В такие моменты я понимаю: счастье — это не цель, а вот эти мгновения здесь и сейчас."
+    ]
+  },
+  {
+    title: "Счастье",
+    epigraph: "«Счастье измеряется не днями, а мгновениями, проведёнными вместе.»",
+    paragraphs: [
+      "Счастье — это когда ты рядом. Оно измеряется не днями, а мгновениями, проведёнными вместе. И я стараюсь ценить каждое такое мгновение.",
+      "Раньше я думал, что счастье — это что-то большое и далёкое. Но с тобой понял: оно живёт в мелочах. В общем смехе, в случайном прикосновении, в тихом вечере вдвоём.",
+      "Ты научила меня видеть счастье в простом. И теперь я умею радоваться жизни так, как не умел раньше. Это твой подарок мне — и я берегу его."
+    ]
+  },
+  {
+    title: "Доверие",
+    epigraph: "«Я доверяю тебе самые сокровенные мысли — и ты их бережно хранишь.»",
+    paragraphs: [
+      "Я доверяю тебе свои самые сокровенные мысли и страхи. И ты бережно хранишь их — это бесценно. Найти человека, которому можно открыться, — огромная удача.",
+      "Доверие строится долго, а рушится быстро. Я знаю это. Поэтому так ценю то, что между нами: способность быть открытыми и не бояться быть понятыми.",
+      "С тобой я могу быть честным до конца. И эта честность не пугает, а сближает. Наверное, это и есть настоящая близость — когда нечего скрывать и не хочется."
+    ]
+  },
+  {
+    title: "Мой дом",
+    epigraph: "«Дом — это не место, а человек. Ты — мой дом.»",
+    paragraphs: [
+      "Дом — это не место, а человек. Ты — мой дом, куда всегда хочется возвращаться. Где бы я ни был, я знаю: там, где ты, там и тепло.",
+      "Я возвращаюсь к тебе не потому, что некуда идти, а потому что хочу. Каждый раз это как возвращение домой после долгой дороги — радостное и желанное.",
+      "С тобой я чувствую себя на своём месте. Это редкое ощущение — когда весь мир может меняться, а ты остаёшься точкой опоры. Спасибо тебе за это чувство."
+    ]
+  },
+  {
+    title: "Умение прощать",
+    epigraph: "«Мы умеем прощать друг друга, потому что любим.»",
+    paragraphs: [
+      "Мы умеем прощать друг друга, потому что любим. И это делает нашу связь только сильнее. Никто не идеален, но настоящая любовь умеет принимать несовершенства.",
+      "Бывают моменты, когда мы ссоримся. Но мы всегда возвращаемся друг к другу, потому что понимаем: наша связь важнее любых обид. Это и есть зрелость чувств.",
+      "Прощение — это не слабость, а сила. Оно требует мужества и любви. И я благодарен тебе за то, что ты умеешь прощать меня, а я учусь прощать тебя."
+    ]
+  },
+  {
+    title: "Верность",
+    epigraph: "«В мире тысячи людей, но моё сердце выбирает тебя каждый день.»",
+    paragraphs: [
+      "В мире тысячи людей, но моё сердце выбирает тебя каждый день. Снова и снова. Это не привычка и не долг — это искренний выбор, сделанный с любовью.",
+      "Верность — это не только отсутствие других, но и присутствие для тебя. Это внимание, которое не делится, и чувство, которое не разменивается на мелочи.",
+      "Я хочу быть тем, кому ты доверяешь, тем, на кого ты рассчитываешь. И каждый день я делаю шаг к этому — ради тебя и ради нас."
+    ]
+  },
+  {
+    title: "Закат",
+    epigraph: "«Ты красивее любого заката — и это правда.»",
+    paragraphs: [
+      "Мы смотрели на закат, и я думал: ты красивее любого заката и восхода. И это правда. Небо может быть прекрасным, но оно бледнеет рядом с тобой.",
+      "Закат — это время, когда мир словно замедляется. Мы сидели рядом, держась за руки, и молчали. И в этом молчании было больше, чем в любых словах.",
+      "Я люблю закаты с тобой. Каждый из них — отдельное воспоминание, маленькая глава нашей общей истории. И я хочу написать ещё тысячи таких глав."
+    ]
+  },
+  {
+    title: "Дождь",
+    epigraph: "«Под дождём с тобой тепло — даже промокшим до нитки.»",
+    paragraphs: [
+      "Под дождём с тобой тепло. Даже промокшие до нитки, мы смеялись, будто были в самой тёплой комнате. Дождь — это не повод грустить, если рядом любимый человек.",
+      "Мы бежали под одним зонтом, и я держал его так, чтобы тебе было удобнее. Плевать, что сам промок — главное, что ты рядом и улыбаешься.",
+      "Дождь стал одним из наших любимых воспоминаний. Мы вспоминаем тот день и улыбаемся. Ведь счастье — оно не про погоду, а про людей, которые рядом."
+    ]
+  },
+  {
+    title: "Музыка",
+    epigraph: "«Каждая песня о любви теперь напоминает мне о тебе.»",
+    paragraphs: [
+      "Каждая песня о любви теперь напоминает мне о тебе. Ты стала моим личным саундтреком. Стоит услышать знакомую мелодию — и я снова там, рядом с тобой.",
+      "У нас есть песни, которые стали нашими. Мы слушаем их вместе, и они звучат по-особому. В этих мелодиях — наша история, наша нежность, наши чувства.",
+      "Музыка умеет говорить то, что не всегда скажешь словами. И я рад, что у нас есть свои песни — маленькие ключики к общим воспоминаниям."
+    ]
+  },
+  {
+    title: "Наш путь",
+    epigraph: "«Я не знаю, куда приведёт дорога, но с тобой мне не страшно.»",
+    paragraphs: [
+      "Я не знаю, куда приведёт нас дорога, но знаю: с тобой мне не страшно идти куда угодно. Путь важнее目的地 — особенно когда рядом тот, кто держит за руку.",
+      "Мы прошли уже немало. Были и ровные дороги, и ухабы. Но каждый раз мы справлялись, потому что шли вместе. И это делает нас сильнее.",
+      "Впереди ещё много неизведанного. Но я смотрю в будущее с надеждой, потому что знаю: мы справимся. Ведь у нас есть главное — друг друг."
+    ]
+  },
+  {
+    title: "Память",
+    epigraph: "«Все наши лучшие моменты — в моём сердце.»",
+    paragraphs: [
+      "Все наши лучшие моменты — в моём сердце. Я берегу каждую мелочь, связанную с тобой. Память — это то, что остаётся с нами, когда уходит время.",
+      "Иногда я перебираю наши общие воспоминания, как старые фотографии. И каждый раз нахожу что-то новое, что раньше не замечал. Наша история многогранна.",
+      "Я хочу, чтобы у нас было ещё много моментов, которые стоит запомнить. Чтобы копилка нашей памяти пополнялась каждый день — маленькими и большими событиями."
+    ]
+  },
+  {
+    title: "Тепло",
+    epigraph: "«Твоё тепло делает этот мир добрее.»",
+    paragraphs: [
+      "Твоё тепло не сравнится ни с чем. Внутренний свет, который ты излучаешь, делает этот мир добрее. Ты — как маленькое солнце в человеческом обличье.",
+      "Я замечаю, как ты относишься к людям, как помогаешь, как умеешь согреть словом. Это редкое качество — и я восхищаюсь им каждый день.",
+      "С тобой хочется быть лучше. Твоё тепло заражает, вдохновляет, учит. И я благодарен за то, что могу греться в его лучах."
+    ]
+  },
+  {
+    title: "Время",
+    epigraph: "«С тобой время летит незаметно.»",
+    paragraphs: [
+      "С тобой время летит незаметно. Но я был бы не против остановить его в самый счастливый момент. Хотя бы ненадолго — чтобы запомнить каждую деталь.",
+      "Мы часто удивляемся: как же быстро пролетел день, вечер, ночь. Наверное, это признак того, что нам хорошо вместе — когда время исчезает.",
+      "Я хочу прожить с тобой много времени. И пусть оно летит — главное, чтобы летело не зря. Чтобы каждый год был наполнен смыслом и любовью."
+    ]
+  },
+  {
+    title: "Простота",
+    epigraph: "«С тобой просто. Просто быть — и этого достаточно.»",
+    paragraphs: [
+      "С тобой просто. Не надо играть роли, не надо притворяться. Просто быть — и этого достаточно. Простота в отношениях — это признак настоящей любви.",
+      "Мы можем делать обычные вещи: готовить еду, смотреть кино, гулять. И в этой обыденности столько уюта, что она становится особенной.",
+      "Простота не значит скука. Это скорее гармония, когда рядом с человеком легко и спокойно. И я ценю эту простоту больше любых приключений."
+    ]
+  },
+  {
+    title: "Сегодня",
+    epigraph: "«Каждый день с тобой — маленький праздник.»",
+    paragraphs: [
+      "Каждый день с тобой — маленький праздник. И я благодарю судьбу за то, что ты есть. Раньше я ждал выходных, а теперь радуюсь каждому дню.",
+      "В буднях с тобой есть особая прелесть. Утренний кофе, общие дела, вечерние разговоры — в этом столько жизни, что она кажется настоящей.",
+      "Сегодня — это то, что у нас есть. И я хочу наполнить его смыслом, радостью, любовью. Чтобы этот день стал ещё одной светлой страницей нашей истории."
+    ]
+  },
+  {
+    title: "Завтра",
+    epigraph: "«Я жду завтра, потому что завтра мы снова увидимся.»",
+    paragraphs: [
+      "Я жду завтра не потому, что сегодня плохо, а потому что завтра мы снова увидимся. В ожидании встречи есть особая радость — тепло предвкушения.",
+      "Завтра — это новый шанс. Новый повод улыбнуться, обнять, сказать важное. И я хочу использовать каждый такой шанс.",
+      "Я строю планы на завтра, и в них всегда есть место для тебя. Потому что завтра без тебя — это не то завтра, которого я жду."
+    ]
+  },
+  {
+    title: "Всегда",
+    epigraph: "«Я хочу, чтобы это «всегда» было реальным.»",
+    paragraphs: [
+      "Я хочу, чтобы это «всегда» было реальным. Хочу быть рядом с тобой в каждом дне, каждом мгновении. Слово «всегда» кажется таким большим, но с тобой оно становится естественным.",
+      "Мы часто говорим «всегда» и «никогда», не задумываясь. Но когда я говорю «всегда» тебе, я вкладываю в это всю силу своих чувств. Я правда хочу всегда.",
+      "Время покажет, что будет дальше. Но я верю: наше «всегда» возможно. Ведь любовь — это не про количество дней, а про качество каждого из них."
+    ]
+  },
+  {
+    title: "Риск",
+    epigraph: "«Любить — это риск. Но с тобой я готов рисковать всем.»",
+    paragraphs: [
+      "Любить — это риск. Но с тобой я готов рисковать всем, потому что ты — того стоишь. Настоящая любовь всегда требует смелости — открыться, довериться, отдать себя.",
+      "Я рискнул однажды — позволил себе почувствовать то, что чувствую. И это было лучшее решение. Ведь любовь — это всегда шаг навстречу неизвестному.",
+      "Страшно бывает всем. Но страх отступает, когда понимаешь: то, что у нас есть, важнее любых сомнений. И я выбираю любить, несмотря ни на что."
+    ]
+  },
+  {
+    title: "Сила",
+    epigraph: "«Ты делаешь меня сильнее.»",
+    paragraphs: [
+      "Ты делаешь меня сильнее. Твоя вера в меня — это тот фундамент, на котором я строю себя. Когда ты рядом, я чувствую, что могу больше, чем думал.",
+      "Сила — это не про мускулы. Это про поддержку, веру, любовь. И твоя любовь даёт мне силы, о которых я сам не подозревал.",
+      "Я хочу быть сильным для тебя так же, как ты сильна для меня. Взаимная поддержка — это то, что делает нас командой. И я горжусь нашей командой."
+    ]
+  },
+  {
+    title: "Красота",
+    epigraph: "«Твоя душа — самое прекрасное, что я знаю.»",
+    paragraphs: [
+      "Ты красива не только снаружи, но и внутри. Твоя душа — самое прекрасное, что я знаю. Это сочетание внешней и внутренней красоты делает тебя уникальной.",
+      "Красота проходит, а суть остаётся. И мне повезло встретить человека, чья суть прекрасна. С тобой хочется быть рядом не из-за внешности, а из-за того, какая ты есть.",
+      "Я вижу твою красоту в поступках, в словах, в отношении к людям. Она проявляется в мелочах, и я счастлив, что умею её замечать."
+    ]
+  },
+  {
+    title: "Благодарность",
+    epigraph: "«Спасибо за то, что ты есть.»",
+    paragraphs: [
+      "Спасибо за то, что ты есть. За каждый день, за каждое слово, за каждый взгляд. Спасибо за любовь. Эти слова просты, но в них — всё, что я чувствую.",
+      "Благодарность — это тихая радость. Я благодарен судьбе за встречу с тобой, за всё, что мы пережили, за то, что ещё впереди.",
+      "Я стараюсь не забывать говорить спасибо. За большие и маленькие вещи. Ведь умение быть благодарным — это тоже проявление любви."
+    ]
+  },
+  {
+    title: "Навсегда",
+    epigraph: "«35 глав — лишь пролог. Впереди — целая жизнь, написанная вместе с тобой.»",
+    paragraphs: [
+      "Это только начало нашей истории. 35 глав — лишь пролог. Впереди — целая жизнь, написанная вместе с тобой. И я с радостью переверну эту страницу.",
+      "Книга нашей любви не заканчивается. Она продолжается каждый день — новыми событиями, эмоциями, словами. И я не хочу, чтобы она когда-нибудь закончилась.",
+      "Я смотрю на тебя и понимаю: это — то самое. То, чего ищут все и не все находят. И я счастлив, что мы нашли друг друга. Спасибо за эту историю. ❤"
+    ]
+  }
+];
+
+/* ====== Логика книги ====== */
+const closedBook = document.getElementById('closedBook');
+const openBook = document.getElementById('openBook');
+const closeBtn = document.getElementById('closeBtn');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+const pageContent = document.getElementById('pageContent');
+const chapterLabel = document.getElementById('chapterLabel');
+const chapterTitle = document.getElementById('chapterTitle');
+const epigraph = document.getElementById('epigraph');
+const chapterBody = document.getElementById('chapterBody');
+const pageNumTop = document.getElementById('pageNumTop');
+const progressInfo = document.getElementById('progressInfo');
+const progressFill = document.getElementById('progressFill');
+
+let currentPage = 0;
+let isOpen = false;
+const totalPages = chapters.length;
+
+function renderPage(direction = 'next') {
+  const chapter = chapters[currentPage];
+
+  // Перезапуск анимации
+  pageContent.classList.remove('left');
+  pageContent.style.animation = 'none';
+  void pageContent.offsetWidth;
+  pageContent.style.animation = '';
+
+  if (direction === 'prev') {
+    pageContent.classList.add('left');
+  }
+
+  // Заголовок главы
+  chapterLabel.textContent = `Глава ${ordinals[currentPage]}`;
+  chapterTitle.textContent = chapter.title;
+  epigraph.innerHTML = `${chapter.epigraph}`;
+
+  // Тело главы
+  let bodyHtml = '';
+  chapter.paragraphs.forEach((text, idx) => {
+    bodyHtml += `<p class="${idx === 0 ? 'first-paragraph' : ''}">${text}</p>`;
+  });
+  chapterBody.innerHTML = bodyHtml;
+
+  // Номер страницы
+  pageNumTop.textContent = `Глава ${currentPage + 1}`;
+  progressInfo.textContent = `${currentPage + 1} / ${totalPages}`;
+
+  const percent = ((currentPage + 1) / totalPages) * 100;
+  progressFill.style.width = percent + '%';
+
+  prevBtn.disabled = currentPage === 0;
+  nextBtn.disabled = currentPage === totalPages - 1;
+}
+
+/* Открыть книгу */
+function openTheBook() {
+  if (isOpen) return;
+  isOpen = true;
+
+  closedBook.classList.add('fade-out');
+
+  setTimeout(() => {
+    closedBook.style.display = 'none';
+    openBook.style.display = 'block';
+    openBook.classList.add('fade-in');
+    currentPage = 0;
+    renderPage();
+    document.querySelector('.book-pages').scrollTop = 0;
+  }, 550);
+}
+
+/* Закрыть книгу */
+function closeTheBook() {
+  if (!isOpen) return;
+  isOpen = false;
+
+  openBook.style.display = 'none';
+  openBook.classList.remove('fade-in');
+  closedBook.style.display = 'flex';
+  closedBook.classList.remove('fade-out');
+}
+
+/* Навигация */
+function goNext() {
+  if (currentPage < totalPages - 1) {
+    currentPage++;
+    renderPage('next');
+    document.querySelector('.book-pages').scrollTop = 0;
+  }
+}
+
+function goPrev() {
+  if (currentPage > 0) {
+    currentPage--;
+    renderPage('prev');
+    document.querySelector('.book-pages').scrollTop = 0;
+  }
+}
+
+/* ====== Обработчики ====== */
+closedBook.addEventListener('click', openTheBook);
+closeBtn.addEventListener('click', closeTheBook);
+nextBtn.addEventListener('click', goNext);
+prevBtn.addEventListener('click', goPrev);
+
+/* Свайпы для мобильных */
+let touchStartX = 0;
+let touchStartY = 0;
+
+openBook.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+
+openBook.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (dx < 0) goNext();
+    else goPrev();
+  }
+}, { passive: true });
+
+/* Клавиатура */
+document.addEventListener('keydown', (e) => {
+  if (!isOpen) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openTheBook();
+    }
+    return;
+  }
+  if (e.key === 'ArrowRight') goNext();
+  if (e.key === 'ArrowLeft') goPrev();
+  if (e.key === 'Escape') closeTheBook();
+});
+
+/* Инициализация */
+renderPage();
+</script>
+</body>
+</html>
